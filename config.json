@@ -1,2 +1,3 @@
 {"data_root": "D:\\wyxData\\data",
-"data_sources": ["CK", "NASA"]}
+"data_sources": ["CK", "NASA"],
+"model": "lgbm"}
