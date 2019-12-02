@@ -43,4 +43,5 @@ if __name__ == '__main__':
     with open('config.json', 'r') as f:
         config = json.load(f)
     results = experiments(config)
-    print(results)
+    for datasource in config['data_sources']:
+        print('{}: {}'.format(datasource, results[datasource]['mean']))
