@@ -1,3 +1,4 @@
-{"data_root": "D:\\wyxData\\data",
+{"data_root": {"Windows": "D:\\wyxData\\data", 
+    "Mac": "/Users/weiyuxuan/Documents/data"}, 
 "data_sources": ["CK", "NASA"],
 "model": "lgbm"}

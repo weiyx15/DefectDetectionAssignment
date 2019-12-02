@@ -40,12 +40,13 @@ def get_dataset(data_root: str, datasource: str) -> typing.List[str]:
 
 
 if __name__ == '__main__':
+    SYSTEM = 'Mac'
     with open('config.json', 'r') as f:
         config = json.load(f)
     for datasource in config['data_sources']:
-        datasets = get_dataset(config['data_root'], datasource)
+        datasets = get_dataset(config['data_root'][SYSTEM], datasource)
         for dataset in datasets:
-            trains, tests = load_train_test_data(config['data_root'], datasource, dataset)
+            trains, tests = load_train_test_data(config['data_root'][SYSTEM], datasource, dataset)
             for split in range(3):
                 trainXY, testXY = trains[split], tests[split]
                 trainX, trainY = trainXY[:, :-1], np.array(

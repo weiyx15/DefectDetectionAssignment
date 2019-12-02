@@ -6,6 +6,9 @@ from classifiers import model_builder
 from data_loaders import get_dataset, load_train_test_data
 
 
+SYSTEM = 'Mac'
+
+
 def experiments(config: typing.Dict) -> typing.Dict:
     """
     experiment wrapper with configuration as parameter
@@ -18,10 +21,10 @@ def experiments(config: typing.Dict) -> typing.Dict:
     metrics_dict = {}
     training_rates = ('10%', '20%', '30%')
     for datasource in config['data_sources']:
-        datasets = get_dataset(config['data_root'], datasource)
+        datasets = get_dataset(config['data_root'][SYSTEM], datasource)
         mean_dict = [{} for _ in range(len(training_rates))]
         for dataset in datasets:
-            trains, tests = load_train_test_data(config['data_root'], datasource, dataset)
+            trains, tests = load_train_test_data(config['data_root'][SYSTEM], datasource, dataset)
             for split in range(len(training_rates)):
                 trainXY, testXY = trains[split], tests[split]
                 trainX, trainY = trainXY[:, :-1], np.array(
