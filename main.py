@@ -1,3 +1,12 @@
+"""
+running environment:
+    Windows:
+        `SYSTEM = Windows`
+    Baidu macbook pro:
+        conda activate defect
+        `SYSTEM = Mac`  
+"""
+
 import typing
 import json
 import numpy as np
