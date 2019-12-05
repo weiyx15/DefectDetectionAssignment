@@ -10,10 +10,11 @@ F = F-score = 2 * precision * recall / (precision + recall)
 from sklearn.metrics import roc_auc_score
 
 
-def evaluate(testY, predY):
+def evaluate(testY, scoreY, predY):
     """
     evaluate by pd, pf, auc, p, F
     :param testY: true 0/1 labels of test samples
+    :param scoreY: predicted label score (greater score of two predicted labels)
     :param predY: predicted 0/1 labels of test samples
     :return: dict of pd, pf, auc, p, F values, format: {$METRIC_NAME: $METRIC_VALUE}
     """
@@ -46,7 +47,7 @@ def evaluate(testY, predY):
     else:
         f = 2 * pd * p / (pd + p)
     try:
-        auc = roc_auc_score(testY, predY)
+        auc = roc_auc_score(testY, scoreY)
     except ValueError:
         auc = 1.0
     return {'pd': pd, 'pf': pf, 'auc': auc, 'p': p, 'F': f}

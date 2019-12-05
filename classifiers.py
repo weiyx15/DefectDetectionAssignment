@@ -1,7 +1,7 @@
 import typing
 import numpy as np
 import lightgbm as lgb
-from sklearn import svm, neural_network
+from sklearn import svm, neural_network, naive_bayes
 
 from metrics import evaluate
 
@@ -39,9 +39,9 @@ def lgbm(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     }
 
     clf = lgb.train(params, train_data)
-    predY = clf.predict(testX)
-    predY = [1 if pred > .5 else 0 for pred in predY]       # binarize
-    return evaluate(testY, predY)
+    scoreY = clf.predict(testX)
+    predY = [1 if score > .5 else 0 for score in scoreY]       # binarize
+    return evaluate(testY, scoreY, predY)
 
 
 def svc(trainX, trainY, testX, testY) -> typing.Tuple[float]:
@@ -50,13 +50,16 @@ def svc(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     """
     clf = svm.SVC(gamma='scale')
     try:
-        clf.fit(trainX, trainY)   
+        clf.fit(trainX, trainY)
+        scoreY = clf.predict_proba(testX)
         predY = clf.predict(testX)
     except ValueError:
+        scoreY = np.ones((testY.shape[0],))
         predY = np.ones((testY.shape[0],))
     if int(np.sum(predY)) == 0:
+        scoreY = np.ones((testY.shape[0],))
         predY = np.ones((testY.shape[0],))
-    return evaluate(testY, predY)
+    return evaluate(testY, scoreY, predY)
 
 
 def mlp(trainX, trainY, testX, testY) -> typing.Tuple[float]:
@@ -65,5 +68,17 @@ def mlp(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     """
     clf = neural_network.MLPClassifier(hidden_layer_sizes=(32,), learning_rate_init=0.0001, max_iter=1000)
     clf.fit(trainX, trainY)
+    scoreY = clf.predict_proba(testX)
     predY = clf.predict(testX)
-    return evaluate(testY, predY)
+    return evaluate(testY, scoreY, predY)
+
+
+def bayes(trainX, trainY, testX, testY) -> typing.Tuple[float]:
+    """
+    train and test with naive bayes
+    """
+    clf =naive_bayes.GaussianNB()
+    clf.fit(trainX, trainY)
+    scoreY = clf.predict_proba(testX)
+    predY = clf.predict(testX)
+    return evaluate(testY, scoreY, predY)
