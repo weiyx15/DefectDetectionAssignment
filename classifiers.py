@@ -13,6 +13,8 @@ def model_builder(model_name='lgbm'):
         return svc
     elif model_name == 'mlp':
         return mlp
+    elif model_name == 'bayes':
+        return bayes
     else:
         return svc              # default classifier
 
@@ -48,17 +50,17 @@ def svc(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     """
     train and test with svm classifier
     """
-    clf = svm.SVC(gamma='scale')
+    clf = svm.SVC(gamma='auto')
     try:
         clf.fit(trainX, trainY)
-        scoreY = clf.predict_proba(testX)
         predY = clf.predict(testX)
+        scoreY = predY
     except ValueError:
-        scoreY = np.ones((testY.shape[0],))
         predY = np.ones((testY.shape[0],))
+        scoreY = predY
     if int(np.sum(predY)) == 0:
-        scoreY = np.ones((testY.shape[0],))
         predY = np.ones((testY.shape[0],))
+        scoreY = predY
     return evaluate(testY, scoreY, predY)
 
 
@@ -69,6 +71,8 @@ def mlp(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     clf = neural_network.MLPClassifier(hidden_layer_sizes=(32,), learning_rate_init=0.0001, max_iter=1000)
     clf.fit(trainX, trainY)
     scoreY = clf.predict_proba(testX)
+    if len(scoreY.shape) == 2 and scoreY.shape[1] == 2:
+        scoreY = np.max(scoreY, axis=1)
     predY = clf.predict(testX)
     return evaluate(testY, scoreY, predY)
 
@@ -80,5 +84,7 @@ def bayes(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     clf =naive_bayes.GaussianNB()
     clf.fit(trainX, trainY)
     scoreY = clf.predict_proba(testX)
+    if len(scoreY.shape) == 2 and scoreY.shape[1] == 2:
+        scoreY = np.max(scoreY, axis=1)
     predY = clf.predict(testX)
     return evaluate(testY, scoreY, predY)
