@@ -15,7 +15,7 @@ from classifiers import model_builder
 from data_loaders import get_dataset, load_train_test_data
 
 
-SYSTEM = 'Mac'
+SYSTEM = 'Windows'
 
 
 def experiments(config: typing.Dict) -> typing.Dict:
