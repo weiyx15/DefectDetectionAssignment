@@ -10,9 +10,10 @@ running environment:
 import typing
 import json
 import numpy as np
+from collections import Counter
 
 from classifiers import model_builder
-# from processors import smote
+from processors import smote
 from data_loaders import get_dataset, load_train_test_data
 
 
@@ -39,8 +40,10 @@ def experiments(config: typing.Dict) -> typing.Dict:
                 trainXY, testXY = trains[split], tests[split]
                 trainX, trainY = trainXY[:, :-1], np.array(
                     [1 if y >0 else 0 for y in trainXY[:, -1]])      # 1/-1 label to 1/0 label
-                testX, testY = testXY[:, :-1], np.array([1 if y >0 else 0 for y in testXY[:, -1]])
-                # trainX, testX = smote(trainX, testX)
+                testX, testY = testXY[:, :-1], np.array([1 if y > 0 else 0 for y in testXY[:, -1]])
+                print('Original dataset shape %s' % Counter(trainY))
+                trainX, trainY = smote(trainX, trainY)
+                print('Resampled dataset shape %s' % Counter(trainY))
                 metrics = model(trainX, trainY, testX, testY)
                 datasource_dict = metrics_dict.setdefault(datasource, {})
                 datasource_dict.setdefault(dataset, {})[training_rates[split]] = metrics

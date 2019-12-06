@@ -27,9 +27,9 @@ def evaluate(testY, scoreY, predY):
         if pred == 1 and gt == 0:
             fp += 1
         if pred == 0 and gt == 1:
-            tn += 1
-        if pred == 0 and gt == 0:
             fn += 1
+        if pred == 0 and gt == 0:
+            tn += 1
     if tp + fn != 0:
         pd = tp / (tp + fn)
     else:
