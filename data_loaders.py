@@ -40,7 +40,7 @@ def get_dataset(data_root: str, datasource: str) -> typing.List[str]:
 
 
 if __name__ == '__main__':
-    SYSTEM = 'Mac'
+    SYSTEM = 'Windows'
     with open('config.json', 'r') as f:
         config = json.load(f)
     for datasource in config['data_sources']:
@@ -52,4 +52,4 @@ if __name__ == '__main__':
                 trainX, trainY = trainXY[:, :-1], np.array(
                     [1 if y > 0 else 0 for y in trainXY[:, -1]])  # 1/-1 label to 1/0 label
                 testX, testY = testXY[:, :-1], np.array([1 if y > 0 else 0 for y in testXY[:, -1]])
-            pass
+                pass
