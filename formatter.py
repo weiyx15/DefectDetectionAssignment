@@ -62,6 +62,7 @@ def dataset_formatter(input_json: str):
         for (dataset, dst_val) in dsr_val.items():
             for (split, sp_val) in dst_val.items():
                 with open('csvs/{}_{}.csv'.format(dataset, split), 'w') as f:
+                    f.write('{}_{}'.format(dataset, split))
                     for metric_name in ('pd', 'pf', 'auc', 'p', 'F'):
                         f.write(',{}'.format(metric_name))
                     f.write('\n')
