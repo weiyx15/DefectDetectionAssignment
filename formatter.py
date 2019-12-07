@@ -62,7 +62,11 @@ def dataset_formatter(input_json: str):
         for (dataset, dst_val) in dsr_val.items():
             for (split, sp_val) in dst_val.items():
                 with open('csvs/{}_{}.csv'.format(dataset, split), 'w') as f:
+                    for metric_name in ('pd', 'pf', 'auc', 'p', 'F'):
+                        f.write(',{}'.format(metric_name))
+                    f.write('\n')
                     for (model_name, md_val) in sp_val.items():
+                        f.write('{},'.format(model_name))
                         for (metric_name, mt_val) in md_val.items():
                             f.write('%.4f,' % mt_val)
                         f.write('\n')
@@ -70,5 +74,5 @@ def dataset_formatter(input_json: str):
 
 if __name__ == '__main__':
     result_json = 'results.json'
-    compare_formatter(result_json)
+    # compare_formatter(result_json)
     dataset_formatter(result_json)
