@@ -25,10 +25,10 @@ def experiments(config: typing.Dict) -> typing.Dict:
     experiment wrapper with configuration as parameter
     :param config: configuration dict loaded from json file
     :return: dict evaluation metrics of each experiment,
-        format: {$DATA_SOURCE_NAME: {$DATA_SET_NAME: {$METRIC_NAME: $METRIC_VALUE}}}
-        example: {'CK': {'ant1': {'precision': .333, 'recall': .333, 'f-score': .333}}}
+        format: {$DATA_SOURCE_NAME: {$DATA_SET_NAME: {$SPLIT: {$METHOD_NAME: {$METRIC_NAME: $METRIC_VALUE}}}}}
+        example: {'CK': {'ant1': {'10%': {'lr': {'precision': .333, 'recall': .333, 'f-score': .333}}}}}
     """
-    model = model_builder(config['model'])
+    models = [model_builder(model_name.strip()) for model_name in config['model'].split(',')]
     metrics_dict = {}
     training_rates = ('10%', '20%', '30%')
     for datasource in config['data_sources']:
@@ -44,14 +44,17 @@ def experiments(config: typing.Dict) -> typing.Dict:
                 print('Original dataset shape %s' % Counter(trainY))
                 trainX, trainY = smote(trainX, trainY)
                 print('Resampled dataset shape %s' % Counter(trainY))
-                metrics = model(trainX, trainY, testX, testY)
-                datasource_dict = metrics_dict.setdefault(datasource, {})
-                datasource_dict.setdefault(dataset, {})[training_rates[split]] = metrics
-                for (key, val) in metrics.items():
-                    mean_dict[split][key] = mean_dict[split].setdefault(key, 0.0) + val
+                for model in models:
+                    metrics = model(trainX, trainY, testX, testY)
+                    metrics_dict.setdefault(datasource, {}).setdefault(dataset, {}) \
+                        .setdefault(training_rates[split], {})[str(model).split(' ')[1]] = metrics
+                    for (key, val) in metrics.items():
+                        mean_dict[split].setdefault(str(model).split(' ')[1], {})[key] \
+                            = mean_dict[split].setdefault(str(model).split(' ')[1], {}).setdefault(key, 0.0) + val
         for split in range(len(training_rates)):
-            for (key, val) in mean_dict[split].items():
-                mean_dict[split][key] = val / len(datasets)
+            for model in models:
+                for (key, val) in mean_dict[split][str(model).split(' ')[1]].items():
+                    mean_dict[split][str(model).split(' ')[1]][key] = val / len(datasets)
         metrics_dict[datasource]['mean'] = {training_rates[idx]: mean_dict[idx] for idx in range(len(training_rates))}
     return metrics_dict
 
@@ -61,4 +64,6 @@ if __name__ == '__main__':
         config = json.load(f)
     results = experiments(config)
     for datasource in config['data_sources']:
-        print('{}: {}'.format(datasource, results[datasource]['mean']))
+        print('{}: {}'.format(datasource, results[datasource]['mean']['10%']))
+    with open('results.json', 'w') as f:
+        json.dump(results, f)

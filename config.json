@@ -1,4 +1,4 @@
 {"data_root": {"Windows": "D:\\wyxData\\data", 
     "Mac": "/Users/weiyuxuan/Documents/data"}, 
 "data_sources": ["CK", "NASA"],
-"model": "lgbm"}
+"model": "lr, bayes, rf, svm, mlp, lgbm"}
