@@ -8,5 +8,7 @@ Defect detection based software measurements by machine learning approaches
 - `classifiers.py`: collections of classifiers
 - `config.json`: configuration file
 - `data_loaders.py`: methods for loading data
+- `formatter.py`: dumps results to csv files
 - `main.py`: project entrance
 - `metrics.py`: evaluation metrics
+- `processors.py`: re-samplers
