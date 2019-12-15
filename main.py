@@ -14,7 +14,7 @@ from collections import Counter
 
 from classifiers import model_builder
 from processors import smote
-from data_loaders import get_dataset, load_train_test_data
+from datasets.ck_nasa_loaders import get_dataset, load_train_test_data
 
 
 SYSTEM = 'Windows'

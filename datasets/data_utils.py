@@ -1,0 +1,52 @@
+"""
+util functions for data loaders
+"""
+
+import os
+import numpy as np
+from datasets.pcap_loaders import IPv6TCPLoader
+
+
+def remove_duplicate(dataset0, dataset1):
+    """
+    remove samples in `dataset0` which also appear in `dataset1`
+    :param dataset0:
+    :param dataset1:
+    :return: dataset0 with duplicates removed
+    """
+    joint = dataset0.merge(dataset1, how='outer', indicator=True)
+    return joint[joint['_merge'] == 'left_only'].drop(labels=['_merge'], axis=1)
+
+
+def train_test_split(dataset, test_num: int):
+    """
+    random select number of `test_num` samples in `dataset` as test set, with remaining as train set
+    :param dataset: whole dataset
+    :param test_num: number of test samples
+    :return: train_set, test_set
+    """
+    testset = dataset.sample(test_num)
+    trainset = remove_duplicate(dataset, testset)
+    return trainset, testset
+
+
+if __name__ == '__main__':
+    data_root = 'D:\\wyxData\\data\\pcap'
+    all_fn = os.path.join(data_root, 'all', 'IPv6_TCP.csv')
+    normal_fn = os.path.join(data_root, 'normal', 'IPv6_TCP.csv')
+    abnormal_fn = os.path.join(data_root, 'abnormal', 'IPv6_TCP.csv')
+    all_set = IPv6TCPLoader.load_features(all_fn)
+    normal_set = IPv6TCPLoader.load_features(normal_fn)
+    test_neg = abnormal_set = IPv6TCPLoader.load_features(abnormal_fn)      # negative data for test
+    train_unlabeled = all_set = remove_duplicate(all_set, normal_set)       # unlabeled data for train
+    train_pos, test_pos = train_test_split(normal_set, 2000)    # positive data for train & test, |test_cases|=2000
+
+    print('# train P: {}'.format(train_pos.shape[0]))
+    print('# train U: {}'.format(train_unlabeled.shape[0]))
+    print('# test P: {}'.format(test_pos.shape[0]))
+    print('# test N: {}'.format(test_neg.shape[0]))
+
+    input_data = {'trainP': train_pos, 'trainU': train_unlabeled, 'testP': test_pos, 'testN': test_neg}
+    for idx, data in input_data.items():
+        data.to_csv(os.path.join(data_root, 'input_csvs', idx + '.csv'))
+        np.save(os.path.join(data_root, 'input_npys', idx + '.npy'), data.to_numpy())

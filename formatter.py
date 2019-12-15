@@ -39,7 +39,7 @@ def compare_formatter(input_json: str):
 
     for (datasource, ds_val) in results.items():
         for (split, sp_val) in ds_val['mean'].items():
-            with open('csvs/{}_{}.csv'.format(datasource, split), 'w') as f:
+            with open('ck_nasa_results/{}_{}.csv'.format(datasource, split), 'w') as f:
                 for (model_name, md_val) in sp_val.items():
                     for (metric_name, mt_val) in md_val.items():
                         f.write('%.4f,'%mt_val)
@@ -61,7 +61,7 @@ def dataset_formatter(input_json: str):
     for dsr_val in results.values():
         for (dataset, dst_val) in dsr_val.items():
             for (split, sp_val) in dst_val.items():
-                with open('csvs/{}_{}.csv'.format(dataset, split), 'w') as f:
+                with open('ck_nasa_results/{}_{}.csv'.format(dataset, split), 'w') as f:
                     f.write('{}_{}'.format(dataset, split))
                     for metric_name in ('pd', 'pf', 'auc', 'p', 'F'):
                         f.write(',{}'.format(metric_name))
