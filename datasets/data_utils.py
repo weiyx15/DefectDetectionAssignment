@@ -3,8 +3,31 @@ util functions for data loaders
 """
 
 import os
+import typing
+import pandas
 import numpy as np
 from datasets.pcap_loaders import IPv6TCPLoader
+
+
+def drop_equal_columns(input_data: typing.Dict):
+    """
+    delete columns with all equal values which are not helpful to classification
+    :param input_data: dict of trainP, trainU, testP, testN
+    :return: dict of trainP, trainU, testP, testN (without columns with all equal values)
+    """
+    for phase in input_data.keys():
+        input_data[phase]['_label'] = phase
+    concated = pandas.concat([df for df in input_data.values()])
+    equal_col_lst = []          # list of column names with all equal values
+    for col_name in concated:
+        if concated[col_name].unique().size == 1:
+            equal_col_lst.append(col_name)
+
+    print('Dummy Columns: {}'.format(equal_col_lst))
+    concated = concated.drop(columns=equal_col_lst)
+    for phase in input_data.keys():
+        input_data[phase] = concated[concated['_label'] == phase].drop(columns=['_label'])
+    return input_data
 
 
 def remove_duplicate(dataset0, dataset1):
@@ -47,6 +70,9 @@ if __name__ == '__main__':
     print('# test N: {}'.format(test_neg.shape[0]))
 
     input_data = {'trainP': train_pos, 'trainU': train_unlabeled, 'testP': test_pos, 'testN': test_neg}
+
+    input_data = drop_equal_columns(input_data)
+
     for idx, data in input_data.items():
         data.to_csv(os.path.join(data_root, 'input_csvs', idx + '.csv'))
         np.save(os.path.join(data_root, 'input_npys', idx + '.npy'), data.to_numpy())
