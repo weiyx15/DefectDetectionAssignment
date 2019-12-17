@@ -1,5 +1,7 @@
 """
 util functions for data loaders
+process raw csvs file after protocol parsing
+output processed csv/npy files of train/test features and labels for model input
 """
 
 import os

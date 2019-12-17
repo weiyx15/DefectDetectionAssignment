@@ -60,7 +60,7 @@ def experiments(config: typing.Dict) -> typing.Dict:
 
 
 if __name__ == '__main__':
-    with open('config.json', 'r') as f:
+    with open('configs/ck_nasa_config.json', 'r') as f:
         config = json.load(f)
     results = experiments(config)
     for datasource in config['data_sources']:

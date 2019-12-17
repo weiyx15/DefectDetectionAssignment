@@ -41,7 +41,7 @@ def get_dataset(data_root: str, datasource: str) -> typing.List[str]:
 
 if __name__ == '__main__':
     SYSTEM = 'Windows'
-    with open('config.json', 'r') as f:
+    with open('configs/ck_nasa_config.json', 'r') as f:
         config = json.load(f)
     for datasource in config['data_sources']:
         datasets = get_dataset(config['data_root'][SYSTEM], datasource)

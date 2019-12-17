@@ -9,7 +9,7 @@ from imblearn.over_sampling import SMOTE
 
 def smote(X, Y):
     """
-    SMOTE re-sampling algorithm
+    SMOTE re-sampling algorithm, used in software defect detection
     :param X: training features before re-sampling
     :param Y: training labels before re-sampling
     :return: re-sampled training features, re-sampled training labels
@@ -20,3 +20,13 @@ def smote(X, Y):
         return X, Y
     sm = SMOTE(k_neighbors=min(minv-1, 5))
     return sm.fit_resample(X, Y)
+
+
+def random_down_sample(X, num_sampled: int):
+    """
+    randomly down-sample training samples
+    :param X: all training sample array
+    :param num_sampled: number of down-sampled training samples
+    :return: down-sampled training sample array
+    """
+    return X.sample(num_sampled)

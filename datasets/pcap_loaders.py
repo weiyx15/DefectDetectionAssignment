@@ -2,7 +2,8 @@
 data loaders for industry network malicious traffic detection dataset
 """
 
-import typing
+import pandas
+import numpy as np
 import os
 import pandas as pd
 
@@ -73,12 +74,54 @@ class IPv6TCPLoader(PcapLoader):
         self._num_fields = 49
 
 
+def _drop_timestamp(numpy_feature):
+    """
+    drop timestamp column (which is the first column in the train/test numpy feature array
+    :param numpy_feature:
+    :return: numpy feature array without first column
+    """
+    return numpy_feature[:, 1:]
+
+
+def load_train_test_data(data_root: str, data_format: str, drop_timestamp: bool=True):
+    """
+    loaded from `input_csvs`/`input_npys`
+    :param data_root: data root path
+    :param data_format: `csv` or `npy`
+    :param drop_timestamp: whether to drop timestamp feature column in numpy feature array
+    :return: trainX, trainY, testX, testY (numpy array)
+    :raise: ValueError: Invalid data format! Valid formats: `csv` or `npy`
+    """
+    if data_format == 'csv':
+        trainP, trainU, testP, testN = pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainP.csv')).to_numpy(),\
+            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainU.csv')).to_numpy(), \
+            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testP.csv')).to_numpy(), \
+            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testN.csv')).to_numpy()
+    elif data_format == 'npy':
+        trainP, trainU, testP, testN = np.load(os.path.join(data_root, 'input_npys', 'trainP.npy')), \
+            np.load(os.path.join(data_root, 'input_npys', 'trainU.npy')), \
+            np.load(os.path.join(data_root, 'input_npys', 'testP.npy')), \
+            np.load(os.path.join(data_root, 'input_npys', 'testN.npy'))
+    else:
+        raise ValueError('Invalid data format! Valid formats: `csv` or `npy`')
+    n_trainP, n_trainU, n_testP, n_testN = trainP.shape[0], trainU.shape[0], testP.shape[0], testN.shape[0]
+    trainX = np.concatenate((trainP, trainU), axis=0)
+    testX = np.concatenate((testP, testN), axis=0)
+    trainY = [1 for _ in range(n_trainP)]
+    trainY.extend([0 for _ in range(n_trainU)])
+    testY = [1 for _ in range(n_testP)]
+    testY.extend([0 for _ in range(n_testN)])
+    if drop_timestamp:
+        trainX = _drop_timestamp(trainX)
+        testX = _drop_timestamp(testX)
+    trainY = np.array(trainY)
+    testY = np.array(testY)
+    return trainX, trainY, testX, testY
+
+
 if __name__ == '__main__':
     data_root = 'D:\\wyxData\\data\\pcap'
     all_fn = os.path.join(data_root, 'all', 'IPv6_TCP.csv')
     normal_fn = os.path.join(data_root, 'normal', 'IPv6_TCP.csv')
-    input_fns = (all_fn, normal_fn)
-    for fn in input_fns:
-        data = IPv6TCPLoader.load_features(fn)
-        print(data.head(10))
-        print(data.dtypes)
+    trainX, trainY, testX, testY = load_train_test_data(data_root, 'npy')
+    pass
