@@ -50,7 +50,7 @@ def load_train_test_data(data_root: str, negative_split: float=1.0, drop_timesta
 if __name__ == '__main__':
     # data_root = 'D:\\wyxData\\data\\pcap'                     # Windows
     data_root = '/Users/weiyuxuan/Documents/data/pcap_input'    # Mac
-    trainX, trainY, testX, testY = load_train_test_data(data_root, 'npy')
+    trainX, trainY, testX, testY = load_train_test_data(data_root, negative_split=0.5)
     print('training feature shape: {}'.format(trainX.shape))
     print('training label shape: {}'.format(len(trainY)))
     print('testing feature shape: {}'.format(testX.shape))
