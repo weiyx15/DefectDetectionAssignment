@@ -35,7 +35,7 @@ def experiments(trainX, trainY, testX, testY) -> typing.Dict[str, float]:
 
 if __name__ == '__main__':
     data_root = 'D:\\wyxData\\data\\pcap'
-    trainX, trainY, testX, testY = load_train_test_data(data_root, 'npy', drop_timestamp=True)
+    trainX, trainY, testX, testY = load_train_test_data(data_root, negative_split=0.5, drop_timestamp=True)
     print('training feature shape: {}'.format(trainX.shape))
     print('training label shape: {}'.format(len(trainY)))
     print('testing feature shape: {}'.format(testX.shape))

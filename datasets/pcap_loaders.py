@@ -1,109 +1,37 @@
 """
-data loaders for industry network malicious traffic detection dataset
+pcap train/test data loader functions for model input
 """
 
+import os
 import pandas
 import numpy as np
-import os
-import pandas as pd
+
+from datasets.data_utils import _drop_timestamp, remove_duplicate, train_test_split
 
 
-class PcapLoader:
-    """basic class for data loaders of different protocols"""
-    @staticmethod
-    def load_features(input_fn: str):
-        data = pd.read_csv(input_fn)
-        return data
-
-
-class IPv6TCPLoader(PcapLoader):
-    """IPv6-TCP loader"""
-    def __init__(self):
-        super(PcapLoader, self).__init__()
-        self.network_type = 'IPv6'
-        self.transport_type = 'TCP'
-        self._fields = ('time',
-                         'total_length',
-                         'Ethernet_type',
-                         'IP_version',
-                         'IPV6_tc',
-                         'IPV6_fl',
-                         'IPV6_plen',
-                         'IPV6_nh',
-                         'IPV6_hlim',
-                         'TCP_sport',
-                         'TCP_dport',
-                         'TCP_chksum',
-                         'TCP_seq',
-                         'TCP_ack',
-                         'TCP_dataofs',
-                         'TCP_reserved',
-                         'TCP_flags',
-                         'TCP_window',
-                         'TCP_urgptr',
-                         'TCP_options_Timestamp_1',
-                         'TCP_options_Timestamp_2',
-                         'Ethernet_dst_0',
-                         'Ethernet_dst_1',
-                         'Ethernet_dst_2',
-                         'Ethernet_dst_3',
-                         'Ethernet_dst_4',
-                         'Ethernet_dst_5',
-                         'Ethernet_src_0',
-                         'Ethernet_src_1',
-                         'Ethernet_src_2',
-                         'Ethernet_src_3',
-                         'Ethernet_src_4',
-                         'Ethernet_src_5',
-                         'IPV6_src_0',
-                         'IPV6_src_1',
-                         'IPV6_src_2',
-                         'IPV6_src_3',
-                         'IPV6_src_4',
-                         'IPV6_src_5',
-                         'IPV6_src_6',
-                         'IPV6_src_7',
-                         'IPV6_dst_0',
-                         'IPV6_dst_1',
-                         'IPV6_dst_2',
-                         'IPV6_dst_3',
-                         'IPV6_dst_4',
-                         'IPV6_dst_5',
-                         'IPV6_dst_6',
-                         'IPV6_dst_7')
-        self._num_fields = 49
-
-
-def _drop_timestamp(numpy_feature):
+def load_train_test_data(data_root: str, negative_split: float=1.0, drop_timestamp: bool=True):
     """
-    drop timestamp column (which is the first column in the train/test numpy feature array
-    :param numpy_feature:
-    :return: numpy feature array without first column
-    """
-    return numpy_feature[:, 1:]
-
-
-def load_train_test_data(data_root: str, data_format: str, drop_timestamp: bool=True):
-    """
-    loaded from `input_csvs`/`input_npys`
+    loaded from csv files in directory `input_csvs`
     :param data_root: data root path
-    :param data_format: `csv` or `npy`
+    :param negative_split: ratio of negative samples used as test samples, remaining as unlabelded training samples
     :param drop_timestamp: whether to drop timestamp feature column in numpy feature array
     :return: trainX, trainY, testX, testY (numpy array)
-    :raise: ValueError: Invalid data format! Valid formats: `csv` or `npy`
     """
-    if data_format == 'csv':
-        trainP, trainU, testP, testN = pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainP.csv')).to_numpy(),\
-            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainU.csv')).to_numpy(), \
-            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testP.csv')).to_numpy(), \
-            pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testN.csv')).to_numpy()
-    elif data_format == 'npy':
-        trainP, trainU, testP, testN = np.load(os.path.join(data_root, 'input_npys', 'trainP.npy')), \
-            np.load(os.path.join(data_root, 'input_npys', 'trainU.npy')), \
-            np.load(os.path.join(data_root, 'input_npys', 'testP.npy')), \
-            np.load(os.path.join(data_root, 'input_npys', 'testN.npy'))
+    trainP, trainU, testP, testN = pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainP.csv')),\
+        pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainU.csv')), \
+        pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testP.csv')), \
+        pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testN.csv'))
+    if abs(negative_split - 1.0) < 1e-6:
+        pass        # no split on test negative set
     else:
-        raise ValueError('Invalid data format! Valid formats: `csv` or `npy`')
+        trainU = remove_duplicate(trainU, testN)
+        trainN, testN = train_test_split(testN, int(testN.shape[0] * negative_split))
+        trainU = pandas.concat((trainU, trainN))
+
+    trainP = trainP.to_numpy()
+    trainU = trainU.to_numpy()
+    testP = testP.to_numpy()
+    testN = testN.to_numpy()
     n_trainP, n_trainU, n_testP, n_testN = trainP.shape[0], trainU.shape[0], testP.shape[0], testN.shape[0]
     trainX = np.concatenate((trainP, trainU), axis=0)
     testX = np.concatenate((testP, testN), axis=0)
@@ -120,8 +48,10 @@ def load_train_test_data(data_root: str, data_format: str, drop_timestamp: bool=
 
 
 if __name__ == '__main__':
-    data_root = 'D:\\wyxData\\data\\pcap'
-    all_fn = os.path.join(data_root, 'all', 'IPv6_TCP.csv')
-    normal_fn = os.path.join(data_root, 'normal', 'IPv6_TCP.csv')
+    # data_root = 'D:\\wyxData\\data\\pcap'                     # Windows
+    data_root = '/Users/weiyuxuan/Documents/data/pcap_input'    # Mac
     trainX, trainY, testX, testY = load_train_test_data(data_root, 'npy')
-    pass
+    print('training feature shape: {}'.format(trainX.shape))
+    print('training label shape: {}'.format(len(trainY)))
+    print('testing feature shape: {}'.format(testX.shape))
+    print('testing label shape: {}'.format(len(testY)))

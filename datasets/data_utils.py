@@ -8,7 +8,16 @@ import os
 import typing
 import pandas
 import numpy as np
-from datasets.pcap_loaders import IPv6TCPLoader
+from datasets.protocol_loaders import IPv6TCPLoader
+
+
+def _drop_timestamp(numpy_feature: np.ndarray) -> np.ndarray:
+    """
+    drop timestamp column (which is the first column in the train/test numpy feature array
+    :param numpy_feature:
+    :return: numpy feature array without first column
+    """
+    return numpy_feature[:, 1:]
 
 
 def drop_equal_columns(input_data: typing.Dict):
@@ -32,18 +41,18 @@ def drop_equal_columns(input_data: typing.Dict):
     return input_data
 
 
-def remove_duplicate(dataset0, dataset1):
+def remove_duplicate(dataset0: pandas.DataFrame, dataset1: pandas.DataFrame) -> pandas.DataFrame:
     """
     remove samples in `dataset0` which also appear in `dataset1`
-    :param dataset0:
-    :param dataset1:
-    :return: dataset0 with duplicates removed
+    :param dataset0: pandas DataFrame
+    :param dataset1: pandas DataFrame
+    :return: pandas DataFrame, dataset0 with duplicates removed
     """
     joint = dataset0.merge(dataset1, how='outer', indicator=True)
     return joint[joint['_merge'] == 'left_only'].drop(labels=['_merge'], axis=1)
 
 
-def train_test_split(dataset, test_num: int):
+def train_test_split(dataset: pandas.DataFrame, test_num: int) -> (pandas.DataFrame, pandas.DataFrame):
     """
     random select number of `test_num` samples in `dataset` as test set, with remaining as train set
     :param dataset: whole dataset
