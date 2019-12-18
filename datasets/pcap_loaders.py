@@ -9,7 +9,7 @@ import numpy as np
 from datasets.data_utils import _drop_timestamp, remove_duplicate, train_test_split
 
 
-def load_train_test_data(data_root: str, negative_split: float=1.0, drop_timestamp: bool=True):
+def load_train_test_data(data_root: str, drop_timestamp: bool=True):
     """
     loaded from csv files in directory `input_csvs`
     :param data_root: data root path
@@ -21,17 +21,12 @@ def load_train_test_data(data_root: str, negative_split: float=1.0, drop_timesta
         pandas.read_csv(os.path.join(data_root, 'input_csvs', 'trainU.csv')), \
         pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testP.csv')), \
         pandas.read_csv(os.path.join(data_root, 'input_csvs', 'testN.csv'))
-    if abs(negative_split - 1.0) < 1e-6:
-        pass        # no split on test negative set
-    else:
-        trainU = remove_duplicate(trainU, testN)
-        trainN, testN = train_test_split(testN, int(testN.shape[0] * negative_split))
-        trainU = pandas.concat((trainU, trainN))
 
-    trainP = trainP.to_numpy()
-    trainU = trainU.to_numpy()
-    testP = testP.to_numpy()
-    testN = testN.to_numpy()
+    trainP = trainP.fillna(0).to_numpy()
+    trainU = trainU.fillna(0).to_numpy()
+    testP = testP.fillna(0).to_numpy()
+    testN = testN.fillna(0).to_numpy()
+
     n_trainP, n_trainU, n_testP, n_testN = trainP.shape[0], trainU.shape[0], testP.shape[0], testN.shape[0]
     trainX = np.concatenate((trainP, trainU), axis=0)
     testX = np.concatenate((testP, testN), axis=0)
@@ -48,9 +43,9 @@ def load_train_test_data(data_root: str, negative_split: float=1.0, drop_timesta
 
 
 if __name__ == '__main__':
-    # data_root = 'D:\\wyxData\\data\\pcap'                     # Windows
-    data_root = '/Users/weiyuxuan/Documents/data/pcap_input'    # Mac
-    trainX, trainY, testX, testY = load_train_test_data(data_root, negative_split=0.5)
+    data_root = 'D:\\wyxData\\data\\pcap'                     # Windows
+    # data_root = '/Users/weiyuxuan/Documents/data/pcap_input'    # Mac
+    trainX, trainY, testX, testY = load_train_test_data(data_root)
     print('training feature shape: {}'.format(trainX.shape))
     print('training label shape: {}'.format(len(trainY)))
     print('testing feature shape: {}'.format(testX.shape))

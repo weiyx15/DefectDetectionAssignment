@@ -9,6 +9,8 @@ from metrics import evaluate
 def model_builder(model_name='lgbm'):
     if model_name == 'lgbm':
         return lgbm
+    elif model_name == 'lgbm_pu':
+        return lgbm_pu
     elif model_name == 'gbdt':
         return gbdt
     elif model_name == 'svm':
@@ -28,6 +30,37 @@ def model_builder(model_name='lgbm'):
 def lgbm(trainX, trainY, testX, testY) -> typing.Tuple[float]:
     """
     train and test with lightGBM
+    Weight for positive samples varies for unbalanced data or unlabeled data
+    """
+    train_data = lgb.Dataset(trainX, label=trainY)
+
+    params = {
+        'task': 'train',
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'num_leaves': 10,
+        'learning_rate': 0.1,
+        'feature_fraction': 0.9,
+        'bagging_fraction': 0.8,
+        'bagging_freq': 5,
+        'verbose': 0,
+        'scale_pos_weight': 1.4,
+        'min_data': 1,
+        'min_data_in_bin': 1
+    }
+
+    clf = lgb.train(params, train_data)
+    scoreY = clf.predict(testX)
+    predY = [1 if score > .5 else 0 for score in scoreY]       # binarize
+    return evaluate(testY, scoreY, predY)
+
+
+def lgbm_pu(trainX, trainY, testX, testY) -> typing.Tuple[float]:
+    """
+    train and test with lightGBM for PU learning, where training data only contains positive and unlabeled data
+    1. Train g(x) to classify positive versus unlabeled data
+    2. Calculate c = mean(g(x)), x is positive samples
+    3. f(x) = g(x) / c, where f(x) is the classifier for positive versus negative data
     """
     train_data = lgb.Dataset(trainX, label=trainY)
 
@@ -48,7 +81,11 @@ def lgbm(trainX, trainY, testX, testY) -> typing.Tuple[float]:
 
     clf = lgb.train(params, train_data)
     scoreY = clf.predict(testX)
-    predY = [1 if score > .5 else 0 for score in scoreY]       # binarize
+    pos = [score for score in scoreY if score > .5]
+    coeff = sum(pos) / len(pos)
+    threshold = .5 * coeff
+    print('[lgbm_pu][debug] threshold = {}'.format(threshold))
+    predY = [1 if score > threshold else 0 for score in scoreY]  # binarize
     return evaluate(testY, scoreY, predY)
 
 
