@@ -19,6 +19,8 @@ if __name__ == '__main__':
 
     for metric_name in metric_names:
         plt.figure()
-        plt.title(metric_name, fontsize=30)
-        plt.plot(lgbm_weights.keys(), [value_dict[metric_name] for value_dict in lgbm_weights.values()])
+        plt.title(metric_name, fontsize=36)
+        plt.plot(lgbm_weights.keys(), [value_dict[metric_name] for value_dict in lgbm_weights.values()], linewidth=3)
+        plt.xticks(fontsize=22)
+        plt.yticks(fontsize=22)
         plt.savefig(os.path.join('..', 'pcap_results', 'lgbm_weights_{}'.format(metric_name)))
