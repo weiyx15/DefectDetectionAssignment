@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse dataset and model.')
     parser.add_argument('--model', default='lgbm',
                     help='mothod name, "lgbm" or "lgbm_weights"')
-    parser.add_argument('--data_root', help='root path of input csv data. '
+    parser.add_argument('data_root', help='root path of input csv data. '
                                             'Path separators under Windows is `\\\\`, '
                                             'for example, D:\\\\wyxData\\\\data\\\\pcap')
     args = parser.parse_args()
