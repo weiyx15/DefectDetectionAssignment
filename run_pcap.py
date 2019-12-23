@@ -39,17 +39,22 @@ def experiments(trainX, trainY, testX, testY, model_name='lgbm', experiment_time
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse dataset and model.')
-    parser.add_argument('--method', default='lgbm',
+    parser.add_argument('--model', default='lgbm',
                     help='mothod name, "lgbm" or "lgbm_weights"')
-    parser.add_argument('--data_root', help='root path of input csv data')
+    parser.add_argument('--data_root', help='root path of input csv data. '
+                                            'Path separators under Windows is `\\\\`, '
+                                            'for example, D:\\\\wyxData\\\\data\\\\pcap')
     args = parser.parse_args()
-    
-    data_root = 'D:\\wyxData\\data\\pcap'
+
+    modol_name = args.model
+    data_root = args.data_root
+    # data_root = 'D:\\wyxData\\data\\pcap'
+
     trainX, trainY, testX, testY = load_train_test_data(data_root, drop_timestamp=True)
     print('training feature shape: {}'.format(trainX.shape))
     print('training label shape: {}'.format(len(trainY)))
     print('testing feature shape: {}'.format(testX.shape))
     print('testing label shape: {}'.format(len(testY)))
-    results = experiments(trainX, trainY, testX, testY)
+    results = experiments(trainX, trainY, testX, testY, model_name=modol_name)
     print(results)
 
